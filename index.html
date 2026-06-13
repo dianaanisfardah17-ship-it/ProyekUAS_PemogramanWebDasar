@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIASIH — Sistem Administrasi Himpunan Mahasiswa</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<!-- ===== LOGIN SCREEN ===== -->
+<div id="login-screen">
+  <div class="login-card">
+  <div class="login-mascot" id="loginMascot">
+  <div class="mascot-wrap" id="mascotWrap">
+    <div class="mascot-face" id="mascotFace">
+      <div class="mascot-eyes">
+        <div class="m-eye m-eye-l"><div class="m-pupil"></div></div>
+        <div class="m-eye m-eye-r"><div class="m-pupil"></div></div>
+      </div>
+      <div class="mascot-blush">
+        <div class="m-blush"></div>
+        <div class="m-blush"></div>
+      </div>
+      <div class="mascot-mouth" id="mascotMouth"></div>
+    </div>
+    <div class="mascot-hands" id="mascotHands">
+      <span class="m-hand-l">🤚</span>
+      <span class="m-hand-r">🤚</span>
+    </div>
+  </div>
+</div>
+    <div class="login-error" id="loginError">
+      <i class="fas fa-exclamation-circle"></i> Username atau password salah.
+    </div>
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" id="loginUser" placeholder="Masukkan username..." value="">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="loginPass" placeholder="Masukkan password..." value="">
+    </div>
+    <button class="btn btn-primary btn-full" onclick="doLogin()">
+      <i class="fas fa-sign-in-alt"></i> Masuk
+    </button>
+    <p style="text-align:center; margin-top:16px; font-size:12px; color:#aaa;">
+    </p>
+  </div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div id="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-brand">
+        <div class="brand-icon"><i class="fas fa-landmark"></i></div>
+        <div class="brand-text">
+          <h2>SIASIH</h2>
+          <span>Sekretaris Himpunan Mahasiswa</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-user">
+      <div class="user-avatar" id="userAvatar">A</div>
+      <div class="user-info">
+        <p id="userName">Administrator</p>
+        <span id="userRole">Sekretaris Umum</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-label">Utama</div>
+      <div class="nav-item active" onclick="navigate('dashboard', this)">
+        <i class="fas fa-tachometer-alt"></i> Dashboard
+      </div>
+      <div class="nav-item" onclick="navigate('surat', this)">
+        <i class="fas fa-envelope-open-text"></i> Manajemen Surat
+      </div>
+      <div class="nav-item" onclick="navigate('dokumen', this)">
+        <i class="fas fa-folder-open"></i> Arsip Dokumen
+      </div>
+
+      <div class="nav-label">Organisasi</div>
+      <div class="nav-item" onclick="navigate('anggota', this)">
+        <i class="fas fa-users"></i> Data Anggota
+      </div>
+      <div class="nav-item" onclick="navigate('kegiatan', this)">
+        <i class="fas fa-calendar-alt"></i> Program Kegiatan
+      </div>
+      <div class="nav-item" onclick="navigate('absensi', this)">
+        <i class="fas fa-clipboard-check"></i> Absensi
+      </div>
+
+      <div class="nav-label">Administrasi</div>
+      <div class="nav-item" onclick="navigate('notulensi', this)">
+        <i class="fas fa-book-open"></i> Notulensi
+      </div>
+      <div class="nav-item" onclick="navigate('pengesahan', this)">
+        <i class="fas fa-file-signature"></i> TTD Digital
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="nav-item" onclick="doLogout()" style="color:rgba(255,255,255,.5)">
+        <i class="fas fa-sign-out-alt"></i> Keluar
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="page-title" id="pageTitle">Dashboard</div>
+      <div class="topbar-right">
+        <div class="topbar-date" id="topbarDate"></div>
+        <div class="user-avatar" style="width:34px;height:34px;font-size:13px;" id="topAvatar">A</div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ===== DASHBOARD ===== -->
+      <div class="page-section active" id="sec-dashboard">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Total Surat</div>
+            <div class="stat-value" id="stat-surat">0</div>
+            <div class="stat-desc">surat masuk & keluar</div>
+          </div>
+          <div class="stat-card gold">
+            <div class="stat-label">Total Dokumen</div>
+            <div class="stat-value" id="stat-dok">0</div>
+            <div class="stat-desc">arsip tersimpan</div>
+          </div>
+          <div class="stat-card success">
+            <div class="stat-label">Anggota Aktif</div>
+            <div class="stat-value" id="stat-anggota">0</div>
+            <div class="stat-desc">terdaftar semester ini</div>
+          </div>
+          <div class="stat-card info">
+            <div class="stat-label">Program Kegiatan</div>
+            <div class="stat-value" id="stat-kegiatan">0</div>
+            <div class="stat-desc">dijadwalkan tahun ini</div>
+          </div>
+        </div>
+
+        <div class="dashboard-grid">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title"><i class="fas fa-clock" style="color:var(--gold)"></i> Aktivitas Terbaru</span>
+            </div>
+            <div class="card-body" id="recentActivity"></div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title"><i class="fas fa-calendar" style="color:var(--navy)"></i> Agenda Mendatang</span>
+            </div>
+            <div class="card-body" id="upcomingAgenda"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== SURAT ===== -->
+      <div class="page-section" id="sec-surat">
+        <div class="tab-group">
+          <button class="tab-btn active" onclick="switchTab('surat', 'masuk', this)">Surat Masuk</button>
+          <button class="tab-btn" onclick="switchTab('surat', 'keluar', this)">Surat Keluar</button>
+        </div>
+
+        <div class="tab-pane active" id="stab-masuk">
+          <div class="table-toolbar">
+            <input type="text" class="search-input" placeholder="Cari surat masuk..." oninput="searchTable('tblSuratMasuk', this.value)">
+            <div style="display:flex; gap:8px;">
+              <div class="export-group">
+                <button class="btn btn-outline btn-sm" onclick="exportExcel('tblSuratMasuk','SuratMasuk')"><i class="fas fa-file-excel"></i> Excel</button>
+                <button class="btn btn-outline btn-sm" onclick="exportCSV('tblSuratMasuk','SuratMasuk')"><i class="fas fa-file-csv"></i> CSV</button>
+                <button class="btn btn-outline btn-sm" onclick="printTable('tblSuratMasuk','Surat Masuk')"><i class="fas fa-print"></i> Print</button>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="openModal('modalSuratMasuk')">
+                <i class="fas fa-plus"></i> Tambah
+              </button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table id="tblSuratMasuk">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>No. Surat</th>
+                  <th>Tanggal</th>
+                  <th>Pengirim</th>
+                  <th>Perihal</th>
+                  <th>Status</th>
+                  <th>Lampiran</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tbodySuratMasuk"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="tab-pane" id="stab-keluar">
+          <div class="table-toolbar">
+            <input type="text" class="search-input" placeholder="Cari surat keluar..." oninput="searchTable('tblSuratKeluar', this.value)">
+            <div style="display:flex; gap:8px;">
+              <div class="export-group">
+                <button class="btn btn-outline btn-sm" onclick="exportExcel('tblSuratKeluar','SuratKeluar')"><i class="fas fa-file-excel"></i> Excel</button>
+                <button class="btn btn-outline btn-sm" onclick="exportCSV('tblSuratKeluar','SuratKeluar')"><i class="fas fa-file-csv"></i> CSV</button>
+                <button class="btn btn-outline btn-sm" onclick="printTable('tblSuratKeluar','Surat Keluar')"><i class="fas fa-print"></i> Print</button>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="openModal('modalSuratKeluar')">
+                <i class="fas fa-plus"></i> Buat Surat
+              </button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table id="tblSuratKeluar">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>No. Surat</th>
+                  <th>Tanggal</th>
+                  <th>Tujuan</th>
+                  <th>Perihal</th>
+                  <th>Status</th>
+                  <th>Lampiran</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tbodySuratKeluar"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== DOKUMEN ===== -->
+      <div class="page-section" id="sec-dokumen">
+        <div class="table-toolbar">
+          <input type="text" class="search-input" placeholder="Cari dokumen..." oninput="searchTable('tblDokumen', this.value)">
+          <div style="display:flex; gap:8px;">
+            <div class="export-group">
+              <button class="btn btn-outline btn-sm" onclick="exportExcel('tblDokumen','ArsipDokumen')"><i class="fas fa-file-excel"></i> Excel</button>
+              <button class="btn btn-outline btn-sm" onclick="exportCSV('tblDokumen','ArsipDokumen')"><i class="fas fa-file-csv"></i> CSV</button>
+              <button class="btn btn-outline btn-sm" onclick="printTable('tblDokumen','Arsip Dokumen')"><i class="fas fa-print"></i> Print</button>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="tambahDokumen()">
+              <i class="fas fa-upload"></i> Upload Dokumen
+            </button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table id="tblDokumen">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Nama Dokumen</th>
+                <th>Kategori</th>
+                <th>Tanggal Upload</th>
+                <th>Ukuran</th>
+                <th>Deskripsi</th>
+                <th>Files</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyDokumen"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== ANGGOTA ===== -->
+      <div class="page-section" id="sec-anggota">
+        <div class="table-toolbar">
+          <input type="text" class="search-input" placeholder="Cari anggota..." oninput="searchTable('tblAnggota', this.value)">
+          <div style="display:flex; gap:8px;">
+            <div class="export-group">
+              <button class="btn btn-outline btn-sm" onclick="exportExcel('tblAnggota','DataAnggota')"><i class="fas fa-file-excel"></i> Excel</button>
+              <button class="btn btn-outline btn-sm" onclick="exportCSV('tblAnggota','DataAnggota')"><i class="fas fa-file-csv"></i> CSV</button>
+              <button class="btn btn-outline btn-sm" onclick="printTable('tblAnggota','Data Anggota')"><i class="fas fa-print"></i> Print</button>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="tambahAnggota()">
+              <i class="fas fa-user-plus"></i> Tambah Anggota
+            </button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table id="tblAnggota">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>NIM</th>
+                <th>Nama</th>
+                <th>Jabatan</th>
+                <th>bidang</th>
+                <th>Angkatan</th>
+                <th>Status</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyAnggota"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== KEGIATAN ===== -->
+      <div class="page-section" id="sec-kegiatan">
+        <div class="table-toolbar">
+          <div></div>
+          <button class="btn btn-primary btn-sm" onclick="openModal('modalKegiatan')">
+            <i class="fas fa-plus"></i> Tambah Kegiatan
+          </button>
+        </div>
+        <div id="kegiatanList"></div>
+      </div>
+
+      <!-- ===== ABSENSI ===== -->
+      <div class="page-section" id="sec-absensi">
+        <!-- Header Banner -->
+        <div class="absen-banner" style="margin-bottom:20px;">
+          <div class="absen-banner-left">
+            <div class="absen-banner-icon"><i class="fas fa-clipboard-list"></i></div>
+            <div>
+              <h3>Daftar Absensi</h3>
+              <p>Kelola absensi setiap agenda kegiatan himpunan</p>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <select id="filterAbsenKegiatan" onchange="filterAbsensiList()" style="padding:8px 14px;border-radius:8px;border:1.5px solid rgba(255,255,255,.25);background:rgba(255,255,255,.12);color:#fff;font-family:'DM Sans',sans-serif;font-size:13px;outline:none;">
+              <option value="">Semua Kegiatan</option>
+            </select>
+            <button class="btn btn-gold" onclick="openModal('modalBuatAbsensi')">
+              <i class="fas fa-plus"></i> Buat Absensi Baru
+            </button>
+          </div>
+        </div>
+
+        <!-- Session List -->
+        <div id="absensiSessionList"></div>
+
+        <!-- Session Detail (hidden by default) -->
+        <div id="absensiDetail" style="display:none;">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;">
+            <button class="btn btn-outline btn-sm" onclick="backToAbsensiList()"><i class="fas fa-arrow-left"></i> Kembali</button>
+            <h3 id="absenDetailTitle" style="font-family:'DM Serif Display',serif;color:var(--navy);font-size:18px;"></h3>
+          </div>
+          <div id="absensiContent">
+            <div class="alert alert-info"><i class="fas fa-info-circle"></i> Pilih sesi absensi untuk ditampilkan.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== NOTULENSI ===== -->
+      <div class="page-section" id="sec-notulensi">
+        <div class="table-toolbar">
+          <input type="text" class="search-input" placeholder="Cari notulensi..." oninput="searchNotulensi(this.value)">
+          <div style="display:flex; gap:8px;">
+            <div class="export-group">
+              <button class="btn btn-outline btn-sm" onclick="exportExcel('tblNotulensi','Notulensi')"><i class="fas fa-file-excel"></i> Excel</button>
+              <button class="btn btn-outline btn-sm" onclick="printTable('tblNotulensi','Notulensi Rapat')"><i class="fas fa-print"></i> Print</button>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="openTambahNotulensi()">
+              <i class="fas fa-plus"></i> Tambah Notulensi
+            </button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table id="tblNotulensi">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Judul Rapat</th>
+                <th>Tanggal</th>
+                <th>Jenis Rapat</th>
+                <th>Notulis</th>
+                <th>Peserta</th>
+                <th>Status</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyNotulensi"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== PENGESAHAN ===== -->
+      <div class="page-section" id="sec-pengesahan">
+        <div class="alert alert-info" style="margin-bottom:20px;">
+          <i class="fas fa-info-circle"></i>
+          Buat dan simpan tanda tangan digital. TTD yang tersimpan dapat diunduh sebagai file PNG atau kartu TTD.
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+
+          <!-- Kolom Kiri: Daftar TTD Tersimpan -->
+          <div style="display:flex; flex-direction:column; gap:16px;">
+            <div class="card">
+              <div class="card-header" style="background:linear-gradient(90deg,#1a7a4a,#156038);">
+                <span class="card-title" style="color:#fff;"><i class="fas fa-list-ul" style="margin-right:6px;"></i>Daftar TTD Tersimpan</span>
+              </div>
+              <div id="ttdListContainer" style="max-height:520px; overflow-y:auto;">
+                <!-- diisi oleh renderTtdList() -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Kolom Kanan: Panel Buat TTD -->
+          <div class="card">
+            <div class="card-header" style="background:linear-gradient(90deg,var(--navy),var(--navy-light));">
+              <span class="card-title" style="color:#fff;"><i class="fas fa-pen-fancy" style="margin-right:6px;color:var(--gold);"></i>Buat Tanda Tangan Digital</span>
+            </div>
+            <div style="padding:18px;">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Nama Penandatangan</label>
+                  <input type="text" id="signerName" value="Ketua Himpunan" placeholder="Nama penandatangan...">
+                </div>
+                <div class="form-group">
+                  <label>Jabatan</label>
+                  <input type="text" id="signerRole" value="Ketua Umum HMIF 2024/2025" placeholder="Jabatan...">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Label TTD <span style="font-weight:400;color:var(--gray-400);font-size:11.5px;">(opsional, untuk membedakan versi)</span></label>
+                <input type="text" id="signerLabel" placeholder="mis: TTD Resmi, TTD Paraf, v2...">
+              </div>
+
+              <!-- Canvas Area -->
+              <div class="form-group">
+                <label>Tanda Tangan <span style="font-weight:400; color:var(--gray-400); font-size:11.5px;">(Gambar tanda tangan Anda di bawah)</span></label>
+                <div class="signature-wrap" style="border-width:2px; border-color:var(--navy-light);">
+                  <canvas id="signatureCanvas" width="500" height="200"></canvas>
+                  <div class="sig-toolbar" style="background:var(--navy); padding:10px 14px; gap:10px;">
+                    <span style="font-size:12px; color:rgba(255,255,255,.6); flex:1;"><i class="fas fa-hand-pointer" style="margin-right:4px;"></i>Gambar TTD Anda</span>
+                    <label style="font-size:12px;color:rgba(255,255,255,.7);">Warna:</label>
+                    <select id="sigColor" onchange="updateSigColor()" style="background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.2);">
+                      <option value="#0f1f3d">Hitam</option>
+                      <option value="#0d47a1">Biru</option>
+                      <option value="#c0392b">Merah</option>
+                    </select>
+                    <label style="font-size:12px;color:rgba(255,255,255,.7);">Tebal:</label>
+                    <select id="sigSize" onchange="updateSigSize()" style="background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.2);">
+                      <option value="2">Tipis</option>
+                      <option value="3" selected>Normal</option>
+                      <option value="5">Tebal</option>
+                    </select>
+                    <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:#fff;" onclick="clearSignature()"><i class="fas fa-eraser"></i> Hapus</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div style="display:flex; gap:10px; margin-top:4px;">
+                <button class="btn btn-success" style="flex:1" onclick="saveSignature()">
+                  <i class="fas fa-save"></i> Simpan TTD
+                </button>
+                <button class="btn btn-outline" onclick="previewSignature()">
+                  <i class="fas fa-eye"></i> Preview
+                </button>
+              </div>
+
+              <!-- Tips -->
+              <div style="margin-top:16px; padding:12px; background:var(--cream-dark); border-radius:8px;">
+                <p style="font-size:12px; color:var(--gray-600); margin-bottom:6px;"><strong><i class="fas fa-lightbulb" style="color:var(--gold);"></i> Tips TTD Digital:</strong></p>
+                <ul style="font-size:12px; color:var(--gray-600); padding-left:18px; line-height:1.8;">
+                  <li>Gambar tanda tangan menggunakan mouse atau sentuh layar</li>
+                  <li>Pilih <strong>Biru</strong> untuk kesan resmi</li>
+                  <li>Setelah disimpan, TTD dapat di-download sebagai file PNG</li>
+                  <li>Gunakan format kartu TTD untuk keperluan resmi organisasi</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- =================== MODALS =================== -->
+
+<!-- Modal Surat Masuk -->
+<div class="modal-overlay" id="modalSuratMasuk">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3><i class="fas fa-envelope-open-text"></i> Tambah Surat Masuk</h3>
+      <button class="modal-close" onclick="closeModal('modalSuratMasuk')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nomor Surat</label>
+          <input type="text" id="sm_nomor" placeholder="Nomor surat...">
+        </div>
+        <div class="form-group">
+          <label>Tanggal Surat</label>
+          <input type="date" id="sm_tanggal">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Pengirim</label>
+          <input type="text" id="sm_pengirim" placeholder="Instansi/nama pengirim...">
+        </div>
+        <div class="form-group">
+          <label>Tanggal Diterima</label>
+          <input type="date" id="sm_terima">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Perihal</label>
+        <input type="text" id="sm_perihal" placeholder="Perihal/isi singkat surat...">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Status</label>
+          <select id="sm_status">
+            <option value="Diproses">Diproses</option>
+            <option value="Selesai">Selesai</option>
+            <option value="Pending">Pending</option>
+            <option value="Ditolak">Ditolak</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Disposisi ke</label>
+          <select id="sm_disposisi">
+            <option value="Ketua">Ketua Himpunan</option>
+            <option value="Sekretaris">Sekretaris</option>
+            <option value="Bendahara">Bendahara</option>
+            <option value="bidang">bidang Terkait</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Keterangan</label>
+        <textarea id="sm_ket" placeholder="Keterangan tambahan..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Upload Lampiran</label>
+        <div class="file-drop-zone" id="dropSM" onclick="document.getElementById('fileSM').click()"
+          ondragover="handleDragOver(event,'dropSM')" ondragleave="handleDragLeave('dropSM')" ondrop="handleDrop(event,'fileSM','listSM')">
+          <i class="fas fa-cloud-upload-alt"></i>
+          <p>Klik atau seret file ke sini</p>
+          <span>PDF, DOC, JPG, PNG — maks. 10 MB per file</span>
+        </div>
+        <input type="file" id="fileSM" multiple hidden onchange="handleFiles(this,'listSM')">
+        <div class="file-list" id="listSM"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalSuratMasuk')">Batal</button>
+      <button class="btn btn-primary" onclick="saveSuratMasuk()"><i class="fas fa-save"></i> Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Surat Keluar -->
+<div class="modal-overlay" id="modalSuratKeluar">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3><i class="fas fa-paper-plane"></i> Buat Surat Keluar</h3>
+      <button class="modal-close" onclick="closeModal('modalSuratKeluar')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nomor Surat</label>
+          <input type="text" id="sk_nomor" placeholder="Auto-generate atau isi manual...">
+        </div>
+        <div class="form-group">
+          <label>Tanggal</label>
+          <input type="date" id="sk_tanggal">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Kepada Yth.</label>
+          <input type="text" id="sk_tujuan" placeholder="Nama/instansi tujuan...">
+        </div>
+        <div class="form-group">
+          <label>Di</label>
+          <input type="text" id="sk_di" placeholder="Tempat tujuan...">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Perihal</label>
+        <input type="text" id="sk_perihal" placeholder="Perihal surat...">
+      </div>
+      <div class="form-group">
+        <label>Isi Surat</label>
+        <textarea id="sk_isi" rows="5" placeholder="Isi surat..."></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Penandatangan</label>
+          <input type="text" id="sk_ttd" placeholder="Nama penandatangan...">
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="sk_status">
+            <option value="Draft">Draft</option>
+            <option value="Dikirim">Dikirim</option>
+            <option value="Selesai">Selesai</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Upload Lampiran</label>
+        <div class="file-drop-zone" id="dropSK" onclick="document.getElementById('fileSK').click()"
+          ondragover="handleDragOver(event,'dropSK')" ondragleave="handleDragLeave('dropSK')" ondrop="handleDrop(event,'fileSK','listSK')">
+          <i class="fas fa-cloud-upload-alt"></i>
+          <p>Klik atau seret file ke sini</p>
+          <span>PDF, DOC, JPG, PNG</span>
+        </div>
+        <input type="file" id="fileSK" multiple hidden onchange="handleFiles(this,'listSK')">
+        <div class="file-list" id="listSK"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalSuratKeluar')">Batal</button>
+      <button class="btn btn-outline" onclick="previewSuratKeluar()"><i class="fas fa-eye"></i> Preview</button>
+      <button class="btn btn-success btn-sm" onclick="exportSuratKeluarWord()"><i class="fas fa-file-word"></i> Word</button>
+      <button class="btn btn-danger btn-sm" onclick="exportSuratKeluarPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+      <button class="btn btn-primary" onclick="saveSuratKeluar()"><i class="fas fa-save"></i> Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Preview Surat Keluar -->
+<div class="modal-overlay" id="modalPreviewSurat">
+  <div class="modal modal-xl">
+    <div class="modal-header">
+      <h3><i class="fas fa-file-alt"></i> Preview Surat</h3>
+      <button class="modal-close" onclick="closeModal('modalPreviewSurat')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="print-preview" id="previewContent"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalPreviewSurat')">Tutup</button>
+      <button class="btn btn-success btn-sm" onclick="exportPreviewSuratWord()"><i class="fas fa-file-word"></i> Export Word</button>
+      <button class="btn btn-danger btn-sm" onclick="exportPreviewSuratPDF()"><i class="fas fa-file-pdf"></i> Export PDF</button>
+      <button class="btn btn-primary" onclick="window.print()"><i class="fas fa-print"></i> Cetak</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Dokumen -->
+<div class="modal-overlay" id="modalDokumen">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3><i class="fas fa-upload"></i> Upload Dokumen Arsip</h3>
+      <button class="modal-close" onclick="closeModal('modalDokumen')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Nama Dokumen</label>
+        <input type="text" id="dok_nama" placeholder="Judul dokumen...">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Kategori</label>
+          <select id="dok_kategori">
+            <option>AD/ART</option>
+            <option>Notulen Rapat</option>
+            <option>Laporan Kegiatan</option>
+            <option>Proposal</option>
+            <option>SK Pengurus</option>
+            <option>Keuangan</option>
+            <option>Lain-lain</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Tahun</label>
+          <input type="number" id="dok_tahun" value="2025" min="2020" max="2030">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Deskripsi</label>
+        <textarea id="dok_deskripsi" placeholder="Deskripsi dokumen..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Upload File (Multiple)</label>
+        <div class="file-drop-zone" id="dropDok" onclick="document.getElementById('fileDok').click()"
+          ondragover="handleDragOver(event,'dropDok')" ondragleave="handleDragLeave('dropDok')" ondrop="handleDrop(event,'fileDok','listDok')">
+          <i class="fas fa-folder-plus"></i>
+          <p>Upload satu atau beberapa file sekaligus</p>
+          <span>PDF, DOC, DOCX, XLS, XLSX, JPG, PNG — Bebas jumlah</span>
+        </div>
+        <input type="file" id="fileDok" multiple hidden onchange="handleFiles(this,'listDok')">
+        <div class="file-list" id="listDok"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalDokumen')">Batal</button>
+      <button class="btn btn-primary" onclick="saveDokumen()"><i class="fas fa-save"></i> Simpan Arsip</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Anggota -->
+<div class="modal-overlay" id="modalAnggota">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalAnggotaTitle"><i class="fas fa-user-plus"></i> Tambah Anggota</h3>
+      <button class="modal-close" onclick="closeModal('modalAnggota')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>NIM</label>
+          <input type="text" id="ang_nim" placeholder="Nomor Induk Mahasiswa...">
+        </div>
+        <div class="form-group">
+          <label>Angkatan</label>
+          <input type="number" id="ang_angkatan" placeholder="2023">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Nama Lengkap</label>
+        <input type="text" id="ang_nama" placeholder="Nama lengkap...">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Jabatan</label>
+          <select id="ang_jabatan">
+            <option>Ketua</option>
+            <option>Wakil Ketua</option>
+            <option>Sekretaris</option>
+            <option>Bendahara</option>
+            <option>Kepala bidang</option>
+            <option>Anggota</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>bidang</label>
+          <select id="ang_bidang">
+            <option>BPH</option>
+            <option>Dept Hukam</option>
+            <option>Dept PSDM</option>
+            <option>Dept Humas</option>
+            <option>Dept Kaderisasi</option>
+            <option>Dept Medkominfo</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>No. HP</label>
+          <input type="text" id="ang_hp" placeholder="08xxxxxxxxxx">
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="ang_email" placeholder="email@mahasiswa.ac.id">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="ang_status">
+          <option>Aktif</option>
+          <option>Non-Aktif</option>
+          <option>Cuti</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalAnggota')">Batal</button>
+      <button class="btn btn-primary" onclick="saveAnggota()"><i class="fas fa-save"></i> Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Kegiatan -->
+<div class="modal-overlay" id="modalKegiatan">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fas fa-calendar-plus"></i> Tambah Program Kegiatan</h3>
+      <button class="modal-close" onclick="closeModal('modalKegiatan')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Nama Kegiatan</label>
+        <input type="text" id="keg_nama" placeholder="Nama program kegiatan...">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Tanggal Mulai</label>
+          <input type="date" id="keg_mulai">
+        </div>
+        <div class="form-group">
+          <label>Tanggal Selesai</label>
+          <input type="date" id="keg_selesai">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Tempat</label>
+          <input type="text" id="keg_tempat" placeholder="Lokasi kegiatan...">
+        </div>
+        <div class="form-group">
+          <label>Penanggung Jawab</label>
+          <input type="text" id="keg_pj" placeholder="Nama PJ kegiatan...">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>bidang</label>
+          <select id="keg_bidang">
+            <option>Umum</option>
+            <option>PSDM</option>
+            <option>Akademik</option>
+            <option>Humas</option>
+            <option>Seni & Budaya</option>
+            <option>Olahraga</option>
+            <option>Kewirausahaan</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="keg_status">
+            <option>Direncanakan</option>
+            <option>Berjalan</option>
+            <option>Selesai</option>
+            <option>Dibatalkan</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Deskripsi Kegiatan</label>
+        <textarea id="keg_deskripsi" placeholder="Deskripsi singkat kegiatan..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalKegiatan')">Batal</button>
+      <button class="btn btn-primary" onclick="saveKegiatan()"><i class="fas fa-save"></i> Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Detail -->
+<div class="modal-overlay" id="modalDetail">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3 id="detailTitle">Detail</h3>
+      <button class="modal-close" onclick="closeModal('modalDetail')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" id="detailBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalDetail')">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Konfirmasi Hapus -->
+<div class="modal-overlay" id="modalHapus">
+  <div class="modal" style="width:380px;">
+    <div class="modal-header">
+      <h3><i class="fas fa-exclamation-triangle" style="color:var(--danger)"></i> Konfirmasi Hapus</h3>
+      <button class="modal-close" onclick="closeModal('modalHapus')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:14px; color:var(--gray-600);">Apakah Anda yakin ingin menghapus data ini? Tindakan ini tidak dapat dibatalkan.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalHapus')">Batal</button>
+      <button class="btn btn-danger" id="confirmDelete"><i class="fas fa-trash"></i> Hapus</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Tanda Tangan Preview -->
+<div class="modal-overlay" id="modalSigPreview">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Preview Tanda Tangan</h3>
+      <button class="modal-close" onclick="closeModal('modalSigPreview')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" id="sigPreviewBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalSigPreview')">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Buat Absensi Baru -->
+<div class="modal-overlay" id="modalBuatAbsensi">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fas fa-clipboard-list"></i> Buat Absensi Baru</h3>
+      <button class="modal-close" onclick="closeModal('modalBuatAbsensi')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Nama Agenda / Sesi</label>
+        <input type="text" id="abs_nama" placeholder="Contoh: Rapat Bulanan, Seminar Sesi 1...">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Kegiatan Terkait</label>
+          <select id="abs_kegiatan">
+            <option value="">-- Pilih Kegiatan --</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Tanggal</label>
+          <input type="date" id="abs_tanggal">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Waktu Mulai</label>
+          <input type="time" id="abs_mulai" value="08:00">
+        </div>
+        <div class="form-group">
+          <label>Tempat</label>
+          <input type="text" id="abs_tempat" placeholder="Lokasi absensi...">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Peserta</label>
+        <select id="abs_peserta_mode" onchange="togglePesertaMode()">
+          <option value="all">Semua Anggota Aktif</option>
+          <option value="manual">Tambah Manual Nanti</option>
+        </select>
+      </div>
+      <div class="alert alert-info" style="margin-top:8px;">
+        <i class="fas fa-info-circle"></i> Setelah sesi dibuat, Anda bisa menambah peserta secara manual dari halaman detail absensi.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalBuatAbsensi')">Batal</button>
+      <button class="btn btn-primary" onclick="buatAbsensiSesi()"><i class="fas fa-plus"></i> Buat Sesi</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Tambah Peserta Manual -->
+<div class="modal-overlay" id="modalTambahPeserta">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fas fa-user-plus"></i> Tambah Peserta Absensi</h3>
+      <button class="modal-close" onclick="closeModal('modalTambahPeserta')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="tab-group" style="margin-bottom:16px;">
+        <button class="tab-btn active" id="tabPesertaAnggota" onclick="switchPesertaTab('anggota',this)">Dari Data Anggota</button>
+        <button class="tab-btn" id="tabPesertaManual" onclick="switchPesertaTab('manual',this)">Input Manual</button>
+      </div>
+      <!-- Tab Anggota -->
+      <div id="panelPesertaAnggota">
+        <div class="form-group">
+          <label>Cari & Pilih Anggota</label>
+          <input type="text" id="cariAnggotaAbsen" placeholder="Ketik nama anggota..." oninput="filterAnggotaAbsen()">
+        </div>
+        <div id="listAnggotaAbsen" style="max-height:220px; overflow-y:auto; border:1.5px solid var(--gray-200); border-radius:var(--radius);"></div>
+      </div>
+      <!-- Tab Manual -->
+      <div id="panelPesertaManual" style="display:none;">
+        <div class="form-group">
+          <label>Nama Lengkap</label>
+          <input type="text" id="peserta_nama" placeholder="Nama peserta...">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>NIM / Identitas</label>
+            <input type="text" id="peserta_nim" placeholder="NIM atau identitas...">
+          </div>
+          <div class="form-group">
+            <label>Keterangan</label>
+            <input type="text" id="peserta_ket" placeholder="Jabatan, bidang, dll...">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalTambahPeserta')">Batal</button>
+      <button class="btn btn-primary" id="btnSimpanPeserta" onclick="simpanPesertaAbsen()"><i class="fas fa-save"></i> Tambahkan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Notulensi -->
+<div class="modal-overlay" id="modalNotulensi">
+  <div class="modal modal-xl">
+    <div class="modal-header">
+      <h3 id="modalNotulensiTitle"><i class="fas fa-book-open"></i> Tambah Notulensi Rapat</h3>
+      <button class="modal-close" onclick="closeModal('modalNotulensi')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Judul / Nama Rapat *</label>
+          <input type="text" id="not_judul" placeholder="Misal: Rapat Koordinasi bidang PSDM...">
+        </div>
+        <div class="form-group">
+          <label>Tanggal Rapat *</label>
+          <input type="date" id="not_tanggal">
+        </div>
+      </div>
+      <div class="form-row-3">
+        <div class="form-group">
+          <label>Jenis Rapat</label>
+          <select id="not_jenis">
+            <option value="Rapat Koordinasi">Rapat Koordinasi</option>
+            <option value="Rapat Pleno">Rapat Pleno</option>
+            <option value="Rapat bidang">Rapat bidang</option>
+            <option value="Rapat Pengurus Harian">Rapat Pengurus Harian</option>
+            <option value="Rapat Evaluasi">Rapat Evaluasi</option>
+            <option value="Rapat Darurat">Rapat Darurat</option>
+            <option value="Lain-lain">Lain-lain</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Tempat Rapat</label>
+          <input type="text" id="not_tempat" placeholder="Sekretariat, Zoom, dll...">
+        </div>
+        <div class="form-group">
+          <label>Notulis *</label>
+          <input type="text" id="not_notulis" placeholder="Nama notulis...">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Waktu Mulai</label>
+          <input type="time" id="not_mulai" value="08:00">
+        </div>
+        <div class="form-group">
+          <label>Waktu Selesai</label>
+          <input type="time" id="not_selesai" value="10:00">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Pimpinan Rapat</label>
+        <input type="text" id="not_pimpinan" placeholder="Nama pimpinan rapat...">
+      </div>
+      <div class="form-group">
+        <label>Peserta Hadir <span style="font-weight:400;color:var(--gray-400);font-size:11.5px;">(pisahkan dengan koma)</span></label>
+        <textarea id="not_peserta" rows="2" placeholder="Ahmad Rizky (Ketua), Siti Rahayu (Sekretaris), ..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Agenda Rapat <span style="font-weight:400;color:var(--gray-400);font-size:11.5px;">(pisahkan dengan baris baru)</span></label>
+        <textarea id="not_agenda" rows="3" placeholder="1. Pembukaan&#10;2. Pembahasan program kerja&#10;3. Penutup"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Isi / Pembahasan Notulensi *</label>
+        <textarea id="not_isi" rows="6" placeholder="Tuliskan isi pembahasan rapat secara lengkap..."></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Kesimpulan Rapat</label>
+          <textarea id="not_kesimpulan" rows="3" placeholder="Rangkum keputusan dan kesimpulan rapat..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Tindak Lanjut</label>
+          <textarea id="not_tindaklanjut" rows="3" placeholder="Tugas dan rencana tindak lanjut..."></textarea>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Rapat Berikutnya</label>
+          <input type="date" id="not_next">
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="not_status">
+            <option value="Draft">Draft</option>
+            <option value="Final">Final</option>
+            <option value="Disetujui">Disetujui</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalNotulensi')">Batal</button>
+      <button class="btn btn-success btn-sm" onclick="exportNotulensiWord()"><i class="fas fa-file-word"></i> Export Word</button>
+      <button class="btn btn-danger btn-sm" onclick="exportNotulensiPDF()"><i class="fas fa-file-pdf"></i> Export PDF</button>
+      <button class="btn btn-primary" onclick="saveNotulensi()"><i class="fas fa-save"></i> Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Detail Notulensi -->
+<div class="modal-overlay" id="modalDetailNotulensi">
+  <div class="modal modal-xl">
+    <div class="modal-header">
+      <h3><i class="fas fa-book-open"></i> Detail Notulensi</h3>
+      <button class="modal-close" onclick="closeModal('modalDetailNotulensi')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div id="notulensiPreviewContent" class="print-preview"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalDetailNotulensi')">Tutup</button>
+      <button class="btn btn-success btn-sm" id="btnExportNotWord" onclick=""><i class="fas fa-file-word"></i> Export Word</button>
+      <button class="btn btn-danger btn-sm" id="btnExportNotPDF" onclick=""><i class="fas fa-file-pdf"></i> Export PDF</button>
+      <button class="btn btn-primary" onclick="window.print()"><i class="fas fa-print"></i> Cetak</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="sound.js?v=2"></script>
+<script src="script.js?v=2"></script>
+</body>
+</html>
