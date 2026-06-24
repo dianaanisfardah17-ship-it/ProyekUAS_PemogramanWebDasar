@@ -13,7 +13,7 @@ switch ($method) {
 
     case 'GET':
 
-        $result = mysqli_query($conn, "SELECT * FROM kegiatan ORDER BY mulai ASC, id DESC");
+        $result = mysqli_query($conn, "SELECT * FROM kegiatan_diana_2430511046 ORDER BY mulai ASC, id DESC");
 
         $data = [];
         while ($row = mysqli_fetch_assoc($result)) {
@@ -37,7 +37,7 @@ switch ($method) {
         $deskripsi = mysqli_real_escape_string($conn, $input['deskripsi'] ?? '');
 
         mysqli_query($conn, "
-            INSERT INTO kegiatan
+            INSERT INTO kegiatan_diana_2430511046
             (nama, mulai, selesai, tempat, pj, divisi, status, deskripsi)
             VALUES
             ('$nama', '$mulai', '$selesai', '$tempat', '$pj', '$divisi', '$status', '$deskripsi')
@@ -61,7 +61,7 @@ switch ($method) {
         $deskripsi = mysqli_real_escape_string($conn, $input['deskripsi'] ?? '');
 
         mysqli_query($conn, "
-            UPDATE kegiatan
+            UPDATE kegiatan_diana_2430511046
             SET
                 nama='$nama',
                 mulai='$mulai',
@@ -81,7 +81,7 @@ switch ($method) {
 
         $id = (int)($_GET['id'] ?? 0);
 
-        mysqli_query($conn, "DELETE FROM kegiatan WHERE id='$id'");
+        mysqli_query($conn, "DELETE FROM kegiatan_diana_2430511046 WHERE id='$id'");
 
         echo json_encode(["success" => true]);
         break;

@@ -2,9 +2,9 @@
 
 $conn = mysqli_connect(
     "localhost",
-    "root",
-    "",
-    "siasih"
+    "ifummiid_kelasc",
+    "pemweb_db_c",
+    "ifummiid_kelasc"
 );
 
 if (!$conn) {

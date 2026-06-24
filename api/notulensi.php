@@ -17,7 +17,7 @@ switch ($method) {
 
     case 'GET':
 
-        $result = mysqli_query($conn, "SELECT * FROM notulensi ORDER BY tanggal DESC, id DESC");
+        $result = mysqli_query($conn, "SELECT * FROM notulensi_diana_2430511046 ORDER BY tanggal DESC, id DESC");
 
         $data = [];
         while ($row = mysqli_fetch_assoc($result)) {
@@ -50,7 +50,7 @@ switch ($method) {
         $status        = val($conn, $input['status']);
 
         mysqli_query($conn, "
-            INSERT INTO notulensi
+            INSERT INTO notulensi_diana_2430511046
             (judul, tanggal, jenis, tempat, notulis, pimpinan, mulai, selesai, peserta, agenda, isi, kesimpulan, tindak_lanjut, status)
             VALUES
             ('$judul','$tanggal','$jenis','$tempat','$notulis','$pimpinan','$mulai','$selesai','$peserta','$agenda','$isi','$kesimpulan','$tindak_lanjut','$status')
@@ -80,7 +80,7 @@ switch ($method) {
         $status        = val($conn, $input['status']);
 
         mysqli_query($conn, "
-            UPDATE notulensi
+            UPDATE notulensi_diana_2430511046
             SET
                 judul='$judul',
                 tanggal='$tanggal',
@@ -106,7 +106,7 @@ switch ($method) {
 
         $id = (int)($_GET['id'] ?? 0);
 
-        mysqli_query($conn, "DELETE FROM notulensi WHERE id='$id'");
+        mysqli_query($conn, "DELETE FROM notulensi_diana_2430511046 WHERE id='$id'");
 
         echo json_encode(["success" => true]);
         break;

@@ -24,7 +24,7 @@ switch ($method) {
     case 'GET':
         $result = mysqli_query($conn,
             "SELECT id, ttd_image, ttd_nama, ttd_jabatan, ttd_label, created_at
-             FROM user_signatures
+             FROM user_signatures_diana_2430511046
              WHERE user_id = '$userId'
              ORDER BY created_at DESC"
         );
@@ -60,7 +60,7 @@ switch ($method) {
         }
 
         $ok = mysqli_query($conn,
-            "INSERT INTO user_signatures (user_id, ttd_image, ttd_nama, ttd_jabatan, ttd_label)
+            "INSERT INTO user_signatures_diana_2430511046 (user_id, ttd_image, ttd_nama, ttd_jabatan, ttd_label)
              VALUES ('$userId', '$ttdImage', '$ttdNama', '$ttdJabatan', '$ttdLabel')"
         );
 
@@ -80,7 +80,7 @@ switch ($method) {
             exit;
         }
         $ok = mysqli_query($conn,
-            "DELETE FROM user_signatures WHERE id = '$id' AND user_id = '$userId'"
+            "DELETE FROM user_signatures_diana_2430511046 WHERE id = '$id' AND user_id = '$userId'"
         );
         if ($ok) {
             echo json_encode(["success" => true, "message" => "TTD dihapus"]);

@@ -15,7 +15,7 @@ $action = $_GET['action'] ?? '';
 if ($method === 'GET' && $action === 'check') {
     if (!empty($_SESSION['user_id'])) {
         $id  = (int)$_SESSION['user_id'];
-        $res = mysqli_query($conn, "SELECT id, username, nama, role FROM users WHERE id='$id'");
+        $res = mysqli_query($conn, "SELECT id, username, nama, role FROM users_diana_2430511046 WHERE id='$id'");
         $row = mysqli_fetch_assoc($res);
         if ($row) {
             echo json_encode(["loggedIn" => true, "user" => $row]);
@@ -41,7 +41,7 @@ if ($method === 'POST' && $action === 'login') {
     }
 
     $safeUser = mysqli_real_escape_string($conn, $username);
-    $res      = mysqli_query($conn, "SELECT * FROM users WHERE username='$safeUser'");
+    $res      = mysqli_query($conn, "SELECT * FROM users_diana_2430511046 WHERE username='$safeUser'");
     $user     = mysqli_fetch_assoc($res);
 
     if (!$user) {
@@ -62,7 +62,7 @@ if ($method === 'POST' && $action === 'login') {
     if ($user['password'] === $password) {
         $hashed = password_hash($password, PASSWORD_DEFAULT);
         $uid    = (int)$user['id'];
-        mysqli_query($conn, "UPDATE users SET password='$hashed' WHERE id='$uid'");
+        mysqli_query($conn, "UPDATE users_diana_2430511046 SET password='$hashed' WHERE id='$uid'");
     }
 
     session_regenerate_id(true);

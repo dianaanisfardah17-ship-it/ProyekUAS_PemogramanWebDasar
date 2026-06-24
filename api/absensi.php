@@ -26,14 +26,14 @@ switch ($method) {
     // ============================================================
     case 'GET':
 
-        if (!empty($_GET['id'])) {
-            $id = (int)$_GET['id'];
-            $res = mysqli_query($conn, "
-                SELECT a.*, k.nama AS kegiatan_nama
-                FROM absensi_sessions a
-                LEFT JOIN kegiatan k ON k.id = a.kegiatan_id
-                WHERE a.id = '$id'
-            ");
+       if (!empty($_GET['id'])) {
+        $id = (int)$_GET['id'];
+        $res = mysqli_query($conn, "
+        SELECT a.*, k.nama AS kegiatan_nama
+        FROM absensi_sessions_diana_2430511046 a
+        LEFT JOIN kegiatan_diana_2430511046 k ON k.id = a.kegiatan_id
+        WHERE a.id = '$id'
+        ");
             $sesi = mysqli_fetch_assoc($res);
             if (!$sesi) { echo json_encode(null); exit; }
             $sesi = formatSesi($sesi);
@@ -44,8 +44,8 @@ switch ($method) {
 
         $result = mysqli_query($conn, "
             SELECT a.*, k.nama AS kegiatan_nama
-            FROM absensi_sessions a
-            LEFT JOIN kegiatan k ON k.id = a.kegiatan_id
+            FROM absensi_sessions_diana_2430511046 a
+            LEFT JOIN kegiatan_diana_2430511046 k ON k.id = a.kegiatan_id
             ORDER BY a.tanggal DESC, a.id DESC
         ");
 
@@ -78,7 +78,7 @@ switch ($method) {
             }
 
             // Pastikan sesi ada
-            $chk = mysqli_query($conn, "SELECT id FROM absensi_sessions WHERE id = '$session_id'");
+            $chk = mysqli_query($conn, "SELECT id FROM absensi_sessions_diana_2430511046 WHERE id = '$session_id'");
             if (mysqli_num_rows($chk) === 0) {
                 echo json_encode(["success" => false, "message" => "Sesi absensi tidak ditemukan"]);
                 exit;
@@ -99,7 +99,7 @@ switch ($method) {
             // Cek duplikat berdasarkan nim (jika nim diisi)
             if (!empty($nim)) {
                 $dupChk = mysqli_query($conn, "
-                    SELECT id FROM absensi_peserta
+                    SELECT id FROM absensi_peserta_diana_2430511046
                     WHERE session_id = '$session_id' AND nim = '$nim'
                     LIMIT 1
                 ");
@@ -110,7 +110,7 @@ switch ($method) {
             }
 
             $ok = mysqli_query($conn, "
-                INSERT INTO absensi_peserta (session_id, nama, nim, status, waktu_absen)
+                INSERT INTO absensi_peserta_diana_2430511046 (session_id, nama, nim, status, waktu_absen)
                 VALUES ('$session_id', '$nama', '$nim', '$status', NOW())
             ");
 
@@ -146,7 +146,7 @@ switch ($method) {
             if (!in_array($status, $validStatus)) $status = 'Hadir';
 
             mysqli_query($conn, "
-                UPDATE absensi_peserta
+                UPDATE absensi_peserta_diana_2430511046
                 SET status = '$status', waktu_absen = NOW()
                 WHERE session_id = '$session_id'
             ");
@@ -173,7 +173,7 @@ switch ($method) {
 
         // Cek kolom tempat & mulai ada tidak (opsional, sesuai database)
         $columns = [];
-        $colRes  = mysqli_query($conn, "SHOW COLUMNS FROM absensi_sessions");
+        $colRes  = mysqli_query($conn, "SHOW COLUMNS FROM absensi_sessions_diana_2430511046");
         while ($col = mysqli_fetch_assoc($colRes)) {
             $columns[] = $col['Field'];
         }
@@ -186,12 +186,12 @@ switch ($method) {
 
         if ($hasTemp && $hasMulai) {
             $ok = mysqli_query($conn, "
-                INSERT INTO absensi_sessions (kegiatan_id, nama_session, tanggal, tempat, mulai, keterangan)
+                INSERT INTO absensi_sessions_diana_2430511046 (kegiatan_id, nama_session, tanggal, tempat, mulai, keterangan)
                 VALUES ($kegSql, '$nama', '$tanggal', '$tempat', '$mulai', '$keterangan')
             ");
         } else {
             $ok = mysqli_query($conn, "
-                INSERT INTO absensi_sessions (kegiatan_id, nama_session, tanggal, keterangan)
+                INSERT INTO absensi_sessions_diana_2430511046 (kegiatan_id, nama_session, tanggal, keterangan)
                 VALUES ($kegSql, '$nama', '$tanggal', '$keterangan')
             ");
         }
@@ -214,7 +214,7 @@ switch ($method) {
 
             if (!empty($pnama)) {
                 mysqli_query($conn, "
-                    INSERT INTO absensi_peserta (session_id, nama, nim, status, waktu_absen)
+                    INSERT INTO absensi_peserta_diana_2430511046 (session_id, nama, nim, status, waktu_absen)
                     VALUES ('$sessionId', '$pnama', '$pnim', '$pstatus', NOW())
                 ");
             }
@@ -238,7 +238,7 @@ switch ($method) {
             if (!in_array($status, $validStatus)) $status = 'Hadir';
 
             $ok = mysqli_query($conn, "
-                UPDATE absensi_peserta
+                UPDATE absensi_peserta_diana_2430511046
                 SET status = '$status', waktu_absen = NOW()
                 WHERE id = '$id'
             ");
@@ -263,14 +263,14 @@ switch ($method) {
         if ($action === 'peserta') {
             $id = (int)($_GET['id'] ?? 0);
             if ($id <= 0) { echo json_encode(["success" => false, "message" => "ID tidak valid"]); exit; }
-            $ok = mysqli_query($conn, "DELETE FROM absensi_peserta WHERE id = '$id'");
+            $ok = mysqli_query($conn, "DELETE FROM absensi_peserta_diana_2430511046 WHERE id = '$id'");
             echo json_encode(["success" => (bool)$ok]);
             exit;
         }
 
         $id = (int)($_GET['id'] ?? 0);
         if ($id <= 0) { echo json_encode(["success" => false, "message" => "ID tidak valid"]); exit; }
-        $ok = mysqli_query($conn, "DELETE FROM absensi_sessions WHERE id = '$id'");
+        $ok = mysqli_query($conn, "DELETE FROM absensi_sessions_diana_2430511046 WHERE id = '$id'");
         echo json_encode(["success" => (bool)$ok]);
         break;
 
@@ -300,7 +300,7 @@ function formatSesi($row) {
 
 function getPeserta($conn, $sessionId) {
     $res = mysqli_query($conn, "
-        SELECT * FROM absensi_peserta
+        SELECT * FROM absensi_peserta_diana_2430511046
         WHERE session_id = '$sessionId'
         ORDER BY id ASC
     ");

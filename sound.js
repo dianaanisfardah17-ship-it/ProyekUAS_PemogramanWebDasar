@@ -1,3 +1,4 @@
+//cekkkk
 // ===== AUDIO EFFECTS (Web Audio API, tanpa file eksternal) =====
 const SFX = (() => {
   let ctx;

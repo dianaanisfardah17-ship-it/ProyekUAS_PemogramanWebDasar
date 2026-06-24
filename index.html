@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SIASIH — Sistem Administrasi Himpunan Mahasiswa</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <link rel="stylesheet" href="style.css">
@@ -183,7 +183,7 @@
                 <button class="btn btn-outline btn-sm" onclick="exportCSV('tblSuratMasuk','SuratMasuk')"><i class="fas fa-file-csv"></i> CSV</button>
                 <button class="btn btn-outline btn-sm" onclick="printTable('tblSuratMasuk','Surat Masuk')"><i class="fas fa-print"></i> Print</button>
               </div>
-              <button class="btn btn-primary btn-sm" onclick="openModal('modalSuratMasuk')">
+              <button class="btn btn-primary btn-sm" onclick="tambahSuratMasuk()">
                 <i class="fas fa-plus"></i> Tambah
               </button>
             </div>
@@ -216,7 +216,7 @@
                 <button class="btn btn-outline btn-sm" onclick="exportCSV('tblSuratKeluar','SuratKeluar')"><i class="fas fa-file-csv"></i> CSV</button>
                 <button class="btn btn-outline btn-sm" onclick="printTable('tblSuratKeluar','Surat Keluar')"><i class="fas fa-print"></i> Print</button>
               </div>
-              <button class="btn btn-primary btn-sm" onclick="openModal('modalSuratKeluar')">
+              <button class="btn btn-primary btn-sm" onclick="tambahSuratKeluar()">
                 <i class="fas fa-plus"></i> Buat Surat
               </button>
             </div>
@@ -313,9 +313,9 @@
       <div class="page-section" id="sec-kegiatan">
         <div class="table-toolbar">
           <div></div>
-          <button class="btn btn-primary btn-sm" onclick="openModal('modalKegiatan')">
-            <i class="fas fa-plus"></i> Tambah Kegiatan
-          </button>
+         <button class="btn btn-primary btn-sm" onclick="tambahKegiatan()">
+          <i class="fas fa-plus"></i> Tambah Kegiatan
+        </button>
         </div>
         <div id="kegiatanList"></div>
       </div>
@@ -389,7 +389,7 @@
         </div>
       </div>
 
-      <!-- ===== PENGESAHAN ===== -->
+      <!-- ===== TTD Digital ===== -->
       <div class="page-section" id="sec-pengesahan">
         <div class="alert alert-info" style="margin-bottom:20px;">
           <i class="fas fa-info-circle"></i>
@@ -670,12 +670,14 @@
           <label>Kategori</label>
           <select id="dok_kategori">
             <option>AD/ART</option>
-            <option>Notulen Rapat</option>
+            <option>TOR</option>
             <option>Laporan Kegiatan</option>
             <option>Proposal</option>
             <option>SK Pengurus</option>
-            <option>Keuangan</option>
-            <option>Lain-lain</option>
+            <option>LPJ</option>
+            <option>RKAT</option>
+            <option>Berita Acara</option>
+            <option>lain-lain</option>
           </select>
         </div>
         <div class="form-group">
@@ -814,14 +816,14 @@
         <div class="form-group">
           <label>bidang</label>
           <select id="keg_bidang">
-            <option>Umum</option>
+            <option>BPH</option>
             <option>PSDM</option>
-            <option>Akademik</option>
+            <option>Hukam</option>
             <option>Humas</option>
-            <option>Seni & Budaya</option>
-            <option>Olahraga</option>
-            <option>Kewirausahaan</option>
-          </select>
+            <option>Kaderisasi</option>
+            <option>Medkominfo</option>
+             <option>Semua Bidang</option>
+          <select>
         </div>
         <div class="form-group">
           <label>Status</label>
@@ -1110,6 +1112,6 @@
 <div class="toast-container" id="toastContainer"></div>
 
 <script src="sound.js?v=2"></script>
-<script src="script.js?v=2"></script>
+<script src="script.js?v=3"></script>
 </body>
 </html>

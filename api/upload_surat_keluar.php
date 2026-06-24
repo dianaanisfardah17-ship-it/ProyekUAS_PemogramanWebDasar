@@ -1,8 +1,9 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
-
 include 'koneksi.php';
 
 $suratId = $_POST['surat_id'] ?? null;
@@ -12,6 +13,7 @@ if (!$suratId) {
     exit;
 }
 
+// ✅ FIX: naik satu level dari /api/ ke root project, lalu masuk uploads/
 $folder = __DIR__ . "/../uploads/surat_keluar/";
 if (!file_exists($folder)) mkdir($folder, 0777, true);
 
@@ -41,7 +43,7 @@ if (!empty($_FILES['files']['tmp_name'])) {
             $safeId   = (int)$suratId;
 
             mysqli_query($conn, "
-                INSERT INTO surat_keluar_files (surat_id, nama_file, file_path)
+                INSERT INTO surat_keluar_files_diana_2430511046 (surat_id, nama_file, file_path)
                 VALUES ('$safeId','$safeNama','$safePath')
             ");
             $fileDbId   = mysqli_insert_id($conn);
@@ -52,19 +54,19 @@ if (!empty($_FILES['files']['tmp_name'])) {
 
 // ── Sync file ke arsip dokumen ──────────────────────────────────────────────
 if (!empty($uploaded)) {
-    $cek = mysqli_query($conn, "SELECT id FROM dokumen WHERE sumber='surat_keluar' AND sumber_id='" . (int)$suratId . "'");
+    $cek = mysqli_query($conn, "SELECT id FROM dokumen_diana_2430511046 WHERE sumber='surat_keluar' AND sumber_id='" . (int)$suratId . "'");
     if ($row = mysqli_fetch_assoc($cek)) {
         $dokId = $row['id'];
         foreach ($uploaded as $uf) {
             $safeNama = mysqli_real_escape_string($conn, $uf['name']);
             $safePath = mysqli_real_escape_string($conn, $uf['file_path']);
             mysqli_query($conn, "
-                INSERT INTO dokumen_files (dokumen_id, nama_file, file_path)
+                INSERT INTO dokumen_files_diana_2430511046 (dokumen_id, nama_file, file_path)
                 VALUES ('$dokId','$safeNama','$safePath')
             ");
         }
         // Update ukuran
-        $allFiles = mysqli_query($conn, "SELECT file_path FROM dokumen_files WHERE dokumen_id='$dokId'");
+        $allFiles = mysqli_query($conn, "SELECT file_path FROM dokumen_files_diana_2430511046 WHERE dokumen_id='$dokId'");
         $total = 0;
         while ($f = mysqli_fetch_assoc($allFiles)) {
             $fp = __DIR__ . '/../' . $f['file_path'];
@@ -74,7 +76,7 @@ if (!empty($uploaded)) {
             $ukuran = $total >= 1048576
                 ? round($total / 1048576, 2) . ' MB'
                 : round($total / 1024, 1) . ' KB';
-            mysqli_query($conn, "UPDATE dokumen SET ukuran='$ukuran' WHERE id='$dokId'");
+            mysqli_query($conn, "UPDATE dokumen_diana_2430511046 SET ukuran='$ukuran' WHERE id='$dokId'");
         }
     }
 }

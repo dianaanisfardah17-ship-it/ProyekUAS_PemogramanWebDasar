@@ -127,9 +127,7 @@ function navigate(section, el) {
   document.getElementById('sec-' + section).classList.add('active');
   const titles = {dashboard:'Dashboard', surat:'Manajemen Surat', dokumen:'Arsip Dokumen', anggota:'Data Anggota', kegiatan:'Program Kegiatan', absensi:'Absensi', notulensi:'Notulensi Rapat', pengesahan:'TTD Digital'};
   document.getElementById('pageTitle').textContent = titles[section] || section;
-  // Load data dari database saat masuk halaman pengesahan
-  if (section === 'pengesahan') { /* TTD only - no pengesahan load needed */ }
-}
+  }
 
 function switchTab(group, tab, el) {
   document.querySelectorAll(`#sec-${group} .tab-btn`).forEach(x => x.classList.remove('active'));
@@ -308,27 +306,52 @@ function editSuratMasuk(id) {
   const listEl = document.getElementById('listSM');
   listEl.innerHTML = '';
   window.fileDataStore['listSM'] = []; // hanya file BARU yang ditambahkan user
-  if (s.files && s.files.length > 0) {
-    s.files.forEach(f => {
-      const name = typeof f === 'string' ? f : f.name;
-      const dataUrl = typeof f === 'object' ? f.dataUrl : null;
-      const filePath = typeof f === 'object' ? f.file_path : null;
-      const href = dataUrl || filePath;
-      const ftype = typeof f === 'object' ? (f.type || '') : '';
-      const ext = name ? name.split('.').pop().toLowerCase() : '';
-      const isImg = (ftype && ftype.startsWith('image/')) || ['jpg','jpeg','png','gif','webp','bmp'].includes(ext);
-      // Hanya push ke fileDataStore jika file baru (ada dataUrl, bukan dari server)
-      if (typeof f === 'object' && f.dataUrl) window.fileDataStore['listSM'].push(f);
-      const div = document.createElement('div');
-      div.className = 'file-item';
-      div.innerHTML = `
-        ${isImg && href ? `<img src="${href}" style="width:36px;height:36px;object-fit:cover;border-radius:5px;border:1px solid var(--gray-200);">` : `<i class="${fileIcon(name)} file-icon"></i>`}
-        <span class="file-name">${name}</span>
-        <span class="file-size">${typeof f === 'object' && f.size ? (f.size/1024).toFixed(0)+' KB' : (filePath ? '<i class="fas fa-server" style="font-size:10px;color:var(--gray-400);" title="Tersimpan di server"></i>' : '')}</span>
-        <span class="file-remove" onclick="removeFileItem(this,'listSM','${name}')"><i class="fas fa-times"></i></span>`;
-      listEl.appendChild(div);
-    });
-  }
+ // SESUDAH — mirror pola editSuratMasuk
+if (s.files && s.files.length > 0) {
+  s.files.forEach(f => {
+    const name     = typeof f === 'string' ? f : f.name;
+    const dataUrl  = typeof f === 'object' ? f.dataUrl   : null;
+    const filePath = typeof f === 'object' ? f.file_path : null;  // ← TAMBAH
+    const href     = dataUrl || filePath;
+    const ftype    = typeof f === 'object' ? (f.type || '') : '';
+    const ext      = name ? name.split('.').pop().toLowerCase() : '';
+    const isImg    = (ftype && ftype.startsWith('image/'))
+                  || ['jpg','jpeg','png','gif','webp','bmp'].includes(ext);
+
+    // Hanya push ke fileDataStore jika file BARU (ada dataUrl, bukan dari server)
+    if (typeof f === 'object' && f.dataUrl) window.fileDataStore['listSM'].push(f); // ← FIX
+
+    const div = document.createElement('div');
+    div.className = 'file-item';
+    div.innerHTML = `
+      ${isImg && href
+        ? `<img src="${href}" style="width:36px;height:36px;object-fit:cover;border-radius:5px;border:1px solid var(--gray-200);">`
+        : `<i class="${fileIcon(name)} file-icon"></i>`}
+      <span class="file-name">${name}</span>
+      <span class="file-size">${typeof f === 'object' && f.size
+        ? (f.size/1024).toFixed(0)+' KB'
+        : (filePath ? '<i class="fas fa-server" style="font-size:10px;color:var(--gray-400);" title="Tersimpan di server"></i>' : '')
+      }</span>
+      <span class="file-remove" onclick="removeFileItem(this,'listSM','${name}')"><i class="fas fa-times"></i></span>`;
+    listEl.appendChild(div);
+  });
+}
+  openModal('modalSuratMasuk');
+}
+
+function tambahSuratMasuk() {
+  store.editMode = { type: null, id: null };
+  document.getElementById('sm_nomor').value = '';
+  document.getElementById('sm_tanggal').value = new Date().toISOString().split('T')[0];
+  document.getElementById('sm_pengirim').value = '';
+  document.getElementById('sm_terima').value = new Date().toISOString().split('T')[0];
+  document.getElementById('sm_perihal').value = '';
+  document.getElementById('sm_status').value = 'Diproses';
+  document.getElementById('sm_disposisi').value = 'Ketua';
+  document.getElementById('sm_ket').value = '';
+  clearFileStore('listSM');
+  document.getElementById('listSM').innerHTML = '';
+  document.getElementById('fileSM').value = '';
   openModal('modalSuratMasuk');
 }
 
@@ -341,36 +364,38 @@ function detailSuratMasuk(id) {
   // Build lampiran preview section
   let lampiranHtml = '';
   if (s.files && s.files.length > 0) {
-    const thumbs = s.files.map(f => {
-      const name = typeof f === 'string' ? f : f.name;
-      // Dukung dataUrl (file baru di memori) DAN file_path (dari server/database)
-      const dataUrl = typeof f === 'object' ? f.dataUrl : null;
-      const filePath = typeof f === 'object' ? f.file_path : null;
-      const href = dataUrl || (filePath ? filePath : null);
-      const ftype = typeof f === 'object' ? (f.type || '') : '';
-      const ext = name ? name.split('.').pop().toLowerCase() : '';
-      const isImg = (ftype && ftype.startsWith('image/')) || ['jpg','jpeg','png','gif','webp','bmp'].includes(ext);
-      if (isImg && href) {
-        return `<div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
-          <a href="${href}" target="_blank" title="${name}">
-            <img src="${href}" style="width:90px;height:90px;object-fit:cover;border-radius:8px;border:1.5px solid var(--gray-200);box-shadow:0 2px 8px rgba(0,0,0,.1);">
-          </a>
-          <span style="font-size:11px;color:var(--gray-600);max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;">${name}</span>
-        </div>`;
-      } else if (href) {
-        return `<div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
-          <a href="${href}" download="${name}" title="Unduh ${name}" style="display:flex;flex-direction:column;align-items:center;text-decoration:none;">
-            <div style="width:90px;height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:8px;border:1.5px solid var(--gray-200);background:var(--cream);gap:6px;">
-              <i class="${fileIcon(name)}" style="font-size:30px;color:var(--navy-light);"></i>
-              <span style="font-size:10px;color:var(--gray-400);text-transform:uppercase;">${ext}</span>
-            </div>
-          </a>
-          <span style="font-size:11px;color:var(--gray-600);max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;">${name}</span>
-        </div>`;
-      } else {
-        return `<div class="file-thumb"><i class="${fileIcon(name)} fa-lg"></i>${name}</div>`;
-      }
-    }).join('');
+    // SESUDAH — mirror pola detailSuratMasuk
+const thumbs = s.files.map(f => {
+  const name     = typeof f === 'string' ? f : f.name;
+  const dataUrl  = typeof f === 'object' ? f.dataUrl   : null;
+  const filePath = typeof f === 'object' ? f.file_path : null;   // ← TAMBAH
+  const href     = dataUrl || (filePath ? filePath : null);       // ← TAMBAH
+  const ftype    = typeof f === 'object' ? (f.type || '') : '';
+  const ext      = name ? name.split('.').pop().toLowerCase() : '';
+  const isImg    = (ftype && ftype.startsWith('image/'))          // ← TAMBAH ext check
+                || ['jpg','jpeg','png','gif','webp','bmp'].includes(ext);
+
+  if (isImg && href) {
+    return `<div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+      <a href="${href}" target="_blank" title="${name}">
+        <img src="${href}" style="width:90px;height:90px;object-fit:cover;border-radius:8px;border:1.5px solid var(--gray-200);box-shadow:0 2px 8px rgba(0,0,0,.1);">
+      </a>
+      <span style="font-size:11px;color:var(--gray-600);max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;">${name}</span>
+    </div>`;
+  } else if (href) {
+    return `<div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+      <a href="${href}" download="${name}" title="Unduh ${name}" style="display:flex;flex-direction:column;align-items:center;text-decoration:none;">
+        <div style="width:90px;height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:8px;border:1.5px solid var(--gray-200);background:var(--cream);gap:6px;">
+          <i class="${fileIcon(name)}" style="font-size:30px;color:var(--navy-light);"></i>
+          <span style="font-size:10px;color:var(--gray-400);text-transform:uppercase;">${ext}</span>
+        </div>
+      </a>
+      <span style="font-size:11px;color:var(--gray-600);max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;">${name}</span>
+    </div>`;
+  } else {
+    return `<div class="file-thumb"><i class="${fileIcon(name)} fa-lg"></i>${name}</div>`;
+  }
+}).join('');
     lampiranHtml = `
     <div style="margin-top:18px; border-top:1px solid var(--gray-200); padding-top:14px;">
       <div style="font-size:11px;font-weight:600;color:var(--gray-400);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">
@@ -444,13 +469,12 @@ async function loadSuratKeluar() {
 }
 
 async function saveSuratKeluar() {
+  const newFiles = window.fileDataStore['listSK'] || [];
   const nomor   = document.getElementById('sk_nomor').value;
   const tanggal = document.getElementById('sk_tanggal').value;
   const tujuan  = document.getElementById('sk_tujuan').value.trim();
   const perihal = document.getElementById('sk_perihal').value.trim();
   if (!tanggal || !tujuan || !perihal) { showToast('Lengkapi semua field yang wajib diisi!', 'error'); return; }
-
-  const newFiles = window.fileDataStore['listSK'] || [];
   const isEdit   = store.editMode.type === 'suratKeluar';
 
   const payload = {
@@ -490,11 +514,18 @@ async function saveSuratKeluar() {
     }
 
     if (newFiles.length > 0 && suratId) {
-      const fd = new FormData();
-      fd.append('surat_id', suratId);
-      newFiles.forEach(f => fd.append('files[]', f.file));
-      await fetch('api/upload_surat_keluar.php', { method: 'POST', body: fd });
-    }
+  console.log('suratId:', suratId);
+  console.log('jumlah file:', newFiles.length);
+  newFiles.forEach((f, i) => console.log('file ke-' + i, f.name, f.file instanceof File));
+
+  const fd = new FormData();
+  fd.append('surat_id', suratId);
+  newFiles.forEach(f => fd.append('files[]', f.file));
+
+  const uploadRes = await fetch('api/upload_surat_keluar.php', { method: 'POST', body: fd });
+  const text = await uploadRes.text();
+console.log('RESPON SERVER:', text);
+}
 
     store.editMode = { type: null, id: null };
     clearFileStore('listSK');
@@ -522,27 +553,56 @@ function editSuratKeluar(id) {
   document.getElementById('sk_isi').value = s.isi;
   document.getElementById('sk_ttd').value = s.ttd;
   document.getElementById('sk_status').value = s.status;
-  // Restore file list
+
   const listEl = document.getElementById('listSK');
   listEl.innerHTML = '';
   window.fileDataStore['listSK'] = [];
+
   if (s.files && s.files.length > 0) {
     s.files.forEach(f => {
-      const name = typeof f === 'string' ? f : f.name;
-      const dataUrl = typeof f === 'object' ? f.dataUrl : null;
-      const ftype = typeof f === 'object' ? f.type : '';
-      const isImg = ftype && ftype.startsWith('image/');
-      if (typeof f === 'object') window.fileDataStore['listSK'].push(f);
+      const name     = typeof f === 'string' ? f : f.name;
+      const dataUrl  = typeof f === 'object' ? f.dataUrl   : null;
+      const filePath = typeof f === 'object' ? f.file_path : null;
+      const href     = dataUrl || filePath;
+      const ftype    = typeof f === 'object' ? (f.type || '') : '';
+      const ext      = name ? name.split('.').pop().toLowerCase() : '';
+      const isImg    = (ftype && ftype.startsWith('image/'))
+                    || ['jpg','jpeg','png','gif','webp','bmp'].includes(ext);
+
+      // hanya file BARU (punya dataUrl) yang masuk fileDataStore, file lama dari server tidak ikut diupload ulang
+      if (typeof f === 'object' && f.dataUrl) window.fileDataStore['listSK'].push(f);
+
       const div = document.createElement('div');
       div.className = 'file-item';
       div.innerHTML = `
-        ${isImg && dataUrl ? `<img src="${dataUrl}" style="width:36px;height:36px;object-fit:cover;border-radius:5px;border:1px solid var(--gray-200);">` : `<i class="${fileIcon(name)} file-icon"></i>`}
+        ${isImg && href
+          ? `<img src="${href}" style="width:36px;height:36px;object-fit:cover;border-radius:5px;border:1px solid var(--gray-200);">`
+          : `<i class="${fileIcon(name)} file-icon"></i>`}
         <span class="file-name">${name}</span>
-        <span class="file-size">${typeof f === 'object' && f.size ? (f.size/1024).toFixed(0)+' KB' : ''}</span>
+        <span class="file-size">${typeof f === 'object' && f.size
+          ? (f.size/1024).toFixed(0)+' KB'
+          : (filePath ? '<i class="fas fa-server" style="font-size:10px;color:var(--gray-400);" title="Tersimpan di server"></i>' : '')
+        }</span>
         <span class="file-remove" onclick="removeFileItem(this,'listSK','${name}')"><i class="fas fa-times"></i></span>`;
       listEl.appendChild(div);
     });
   }
+  openModal('modalSuratKeluar');
+}
+
+function tambahSuratKeluar() {
+  store.editMode = { type: null, id: null };
+  initSuratKeluarNomor();
+  document.getElementById('sk_tanggal').value = new Date().toISOString().split('T')[0];
+  document.getElementById('sk_tujuan').value = '';
+  document.getElementById('sk_di').value = '';
+  document.getElementById('sk_perihal').value = '';
+  document.getElementById('sk_isi').value = '';
+  document.getElementById('sk_ttd').value = '';
+  document.getElementById('sk_status').value = 'Draft';
+  clearFileStore('listSK');
+  document.getElementById('listSK').innerHTML = '';
+  document.getElementById('fileSK').value = '';
   openModal('modalSuratKeluar');
 }
 
@@ -552,23 +612,28 @@ function detailSuratKeluar(id) {
   let lampiranHtml = '';
   if (s.files && s.files.length > 0) {
     const thumbs = s.files.map(f => {
-      const name = typeof f === 'string' ? f : f.name;
-      const dataUrl = typeof f === 'object' ? f.dataUrl : null;
-      const ftype = typeof f === 'object' ? f.type : '';
-      const isImg = ftype && ftype.startsWith('image/');
-      if (isImg && dataUrl) {
+      const name     = typeof f === 'string' ? f : f.name;
+      const dataUrl  = typeof f === 'object' ? f.dataUrl   : null;
+      const filePath = typeof f === 'object' ? f.file_path : null;
+      const href     = dataUrl || filePath;
+      const ftype    = typeof f === 'object' ? (f.type || '') : '';
+      const ext      = name ? name.split('.').pop().toLowerCase() : '';
+      const isImg    = (ftype && ftype.startsWith('image/'))
+                    || ['jpg','jpeg','png','gif','webp','bmp'].includes(ext);
+
+      if (isImg && href) {
         return `<div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
-          <a href="${dataUrl}" target="_blank" title="${name}">
-            <img src="${dataUrl}" style="width:90px;height:90px;object-fit:cover;border-radius:8px;border:1.5px solid var(--gray-200);box-shadow:0 2px 8px rgba(0,0,0,.1);">
+          <a href="${href}" target="_blank" title="${name}">
+            <img src="${href}" style="width:90px;height:90px;object-fit:cover;border-radius:8px;border:1.5px solid var(--gray-200);box-shadow:0 2px 8px rgba(0,0,0,.1);">
           </a>
           <span style="font-size:11px;color:var(--gray-600);max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;">${name}</span>
         </div>`;
-      } else if (dataUrl) {
+      } else if (href) {
         return `<div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
-          <a href="${dataUrl}" download="${name}" title="Unduh ${name}" style="display:flex;flex-direction:column;align-items:center;text-decoration:none;">
+          <a href="${href}" download="${name}" title="Unduh ${name}" style="display:flex;flex-direction:column;align-items:center;text-decoration:none;">
             <div style="width:90px;height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:8px;border:1.5px solid var(--gray-200);background:var(--cream);gap:6px;">
               <i class="${fileIcon(name)}" style="font-size:30px;color:var(--navy-light);"></i>
-              <span style="font-size:10px;color:var(--gray-400);text-transform:uppercase;">${name.split('.').pop()}</span>
+              <span style="font-size:10px;color:var(--gray-400);text-transform:uppercase;">${ext}</span>
             </div>
           </a>
           <span style="font-size:11px;color:var(--gray-600);max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;">${name}</span>
@@ -1029,7 +1094,7 @@ async function saveKegiatan() {
     selesai: document.getElementById('keg_selesai').value,
     tempat: document.getElementById('keg_tempat').value,
     pj: document.getElementById('keg_pj').value,
-    divisi: document.getElementById('keg_divisi').value,
+    divisi: document.getElementById('keg_bidang').value,
     status: document.getElementById('keg_status').value,
     deskripsi: document.getElementById('keg_deskripsi').value,
   };
@@ -1057,6 +1122,19 @@ async function saveKegiatan() {
   refreshDashboard();
 }
 
+function tambahKegiatan() {
+  store.editMode = { type: null, id: null };
+  document.getElementById('keg_nama').value = '';
+  document.getElementById('keg_mulai').value = new Date().toISOString().split('T')[0];
+  document.getElementById('keg_selesai').value = '';
+  document.getElementById('keg_tempat').value = '';
+  document.getElementById('keg_pj').value = '';
+  document.getElementById('keg_bidang').value = 'BPH';
+  document.getElementById('keg_status').value = 'Direncanakan';
+  document.getElementById('keg_deskripsi').value = '';
+  openModal('modalKegiatan');
+}
+
 function editKegiatan(id) {
   const k = store.kegiatan.find(x => x.id === id);
   store.editMode = { type: 'kegiatan', id };
@@ -1065,7 +1143,7 @@ function editKegiatan(id) {
   document.getElementById('keg_selesai').value = k.selesai;
   document.getElementById('keg_tempat').value = k.tempat;
   document.getElementById('keg_pj').value = k.pj;
-  document.getElementById('keg_divisi').value = k.divisi;
+  document.getElementById('keg_bidang').value = k.divisi;
   document.getElementById('keg_status').value = k.status;
   document.getElementById('keg_deskripsi').value = k.deskripsi;
   openModal('modalKegiatan');
@@ -2007,10 +2085,6 @@ function buildNotulensiHTML(n) {
     ${n.kesimpulan ? `<p class="section-title">Kesimpulan</p><p>${n.kesimpulan.replace(/\n/g,'<br>')}</p>` : ''}
     ${n.tindaklanjut ? `<p class="section-title">Tindak Lanjut</p><p>${n.tindaklanjut.replace(/\n/g,'<br>')}</p>` : ''}
     ${n.next ? `<p><strong>Rapat Berikutnya:</strong> ${formatDate(n.next)}</p>` : ''}
-    <div class="ttd-area">
-      <div class="ttd-box"><p>Pimpinan Rapat,</p><div class="ttd-line">${n.pimpinan}</div></div>
-      <div class="ttd-box"><p>Notulis,</p><div class="ttd-line">${n.notulis}</div></div>
-    </div>
     </body></html>`;
 }
 
@@ -2032,9 +2106,6 @@ function detailNotulensi(id) {
     ${n.kesimpulan ? `<p style="font-weight:700;margin:14px 0 6px;border-bottom:1px solid #ccc;">Kesimpulan</p><p>${n.kesimpulan.replace(/\n/g,'<br>')}</p>` : ''}
     ${n.tindaklanjut ? `<p style="font-weight:700;margin:14px 0 6px;border-bottom:1px solid #ccc;">Tindak Lanjut</p><p>${n.tindaklanjut.replace(/\n/g,'<br>')}</p>` : ''}
     ${n.next ? `<p style="margin-top:10px;"><strong>Rapat Berikutnya:</strong> ${formatDate(n.next)}</p>` : ''}
-    <div style="margin-top:30px;display:flex;justify-content:space-between;">
-      <div class="ttd-box"><p>Pimpinan Rapat,</p><div class="ttd-name">${n.pimpinan}</div></div>
-      <div class="ttd-box"><p>Notulis,</p><div class="ttd-name">${n.notulis}</div></div>
     </div>`;
 
   document.getElementById('btnExportNotWord').onclick = () => exportNotulensiWordById(id);
@@ -2197,16 +2268,6 @@ function generateNotulensiPDF(n) {
     }
 
     // TTD
-    if (y > 240) { doc.addPage(); y = 20; }
-    doc.setFont('times','normal'); doc.setFontSize(11);
-    doc.text('Pimpinan Rapat,', lm+10, y);
-    doc.text('Notulis,', rm-50, y); y+=20;
-    doc.line(lm, y, lm+60, y);
-    doc.line(rm-70, y, rm-10, y); y+=5;
-    doc.setFont('times','bold');
-    doc.text(n.pimpinan||'', lm+30, y, {align:'center'});
-    doc.text(n.notulis||'', rm-40, y, {align:'center'});
-
     doc.save(`Notulensi_${(n.judul||'rapat').replace(/\s+/g,'_')}_${n.tanggal}.pdf`);
     showToast('Notulensi berhasil diexport ke PDF!');
   } catch(e) {

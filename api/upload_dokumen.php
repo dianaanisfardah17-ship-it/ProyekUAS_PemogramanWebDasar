@@ -51,7 +51,7 @@ if (!empty($_FILES['files']['tmp_name'])) {
             $safeId    = (int)$dokumenId;
 
             mysqli_query($conn, "
-                INSERT INTO dokumen_files (dokumen_id, nama_file, file_path)
+                INSERT INTO dokumen_files_diana_2430511046 (dokumen_id, nama_file, file_path)
                 VALUES ('$safeId','$safeNama','$safePath')
             ");
 
@@ -70,12 +70,12 @@ if (!empty($_FILES['files']['tmp_name'])) {
 // Update kolom ukuran di tabel dokumen (total semua file)
 if (!empty($uploaded)) {
     $totalRes = mysqli_query($conn, "
-        SELECT SUM(LENGTH(file_path)) FROM dokumen_files WHERE dokumen_id='" . (int)$dokumenId . "'
+        SELECT SUM(LENGTH(file_path)) FROM dokumen_files_diana_2430511046 WHERE dokumen_id='" . (int)$dokumenId . "'
     ");
     // Hitung ukuran dari file fisik yang baru saja diupload
     $totalMB  = round($totalBytes / 1024 / 1024, 2);
     $ukuran   = $totalMB > 0 ? $totalMB . ' MB' : round($totalBytes / 1024, 1) . ' KB';
-    mysqli_query($conn, "UPDATE dokumen SET ukuran='$ukuran' WHERE id='" . (int)$dokumenId . "'");
+    mysqli_query($conn, "UPDATE dokumen_diana_2430511046 SET ukuran='$ukuran' WHERE id='" . (int)$dokumenId . "'");
 }
 
 echo json_encode([

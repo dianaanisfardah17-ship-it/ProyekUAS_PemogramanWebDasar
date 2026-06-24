@@ -14,14 +14,14 @@ function syncArsipSuratMasuk($conn, $suratId, $nomor, $tanggal, $pengirim, $peri
     $desk  = mysqli_real_escape_string($conn, "Dari: $pengirim | No: $nomor | Status: $status");
 
     // Cek apakah sudah ada arsip untuk surat ini
-    $cek = mysqli_query($conn, "SELECT id FROM dokumen WHERE sumber='surat_masuk' AND sumber_id='$suratId'");
+    $cek = mysqli_query($conn, "SELECT id FROM dokumen_diana_2430511046 WHERE sumber='surat_masuk' AND sumber_id='$suratId'");
 
     if (mysqli_num_rows($cek) > 0) {
         // UPDATE arsip yang sudah ada
         $row = mysqli_fetch_assoc($cek);
         $dokId = $row['id'];
         mysqli_query($conn, "
-            UPDATE dokumen SET
+            UPDATE dokumen_diana_2430511046 SET
                 nama      = '$nama',
                 deskripsi = '$desk',
                 tanggal   = '$tanggal',
@@ -31,7 +31,7 @@ function syncArsipSuratMasuk($conn, $suratId, $nomor, $tanggal, $pengirim, $peri
     } else {
         // INSERT arsip baru
         mysqli_query($conn, "
-            INSERT INTO dokumen (nama, kategori, tanggal, ukuran, deskripsi, tahun, sumber, sumber_id)
+            INSERT INTO dokumen_diana_2430511046 (nama, kategori, tanggal, ukuran, deskripsi, tahun, sumber, sumber_id)
             VALUES ('$nama','Surat Masuk','$tanggal','—','$desk','$tahun','surat_masuk','$suratId')
         ");
         $dokId = mysqli_insert_id($conn);
@@ -42,16 +42,16 @@ function syncArsipSuratMasuk($conn, $suratId, $nomor, $tanggal, $pengirim, $peri
 // ── Helper: salin file dari surat_masuk_files → dokumen_files ─────────────
 function syncFilesSuratMasuk($conn, $suratId, $dokId) {
     // Hapus file arsip lama yang bersumber dari surat ini
-    mysqli_query($conn, "DELETE FROM dokumen_files WHERE dokumen_id='$dokId'");
+    mysqli_query($conn, "DELETE FROM dokumen_files_diana_2430511046 WHERE dokumen_id='$dokId'");
 
     // Salin referensi file dari surat_masuk_files
-    $files = mysqli_query($conn, "SELECT * FROM surat_masuk_files WHERE surat_id='$suratId'");
+    $files = mysqli_query($conn, "SELECT * FROM surat_masuk_files_diana_2430511046 WHERE surat_id='$suratId'");
     $totalBytes = 0;
     while ($f = mysqli_fetch_assoc($files)) {
         $nama = mysqli_real_escape_string($conn, $f['nama_file']);
         $path = mysqli_real_escape_string($conn, $f['file_path'] ?? '');
         mysqli_query($conn, "
-            INSERT INTO dokumen_files (dokumen_id, nama_file, file_path)
+            INSERT INTO dokumen_files_diana_2430511046 (dokumen_id, nama_file, file_path)
             VALUES ('$dokId','$nama','$path')
         ");
         // Hitung ukuran file fisik
@@ -63,7 +63,7 @@ function syncFilesSuratMasuk($conn, $suratId, $dokId) {
         $ukuran = $totalBytes >= 1048576
             ? round($totalBytes / 1048576, 2) . ' MB'
             : round($totalBytes / 1024, 1) . ' KB';
-        mysqli_query($conn, "UPDATE dokumen SET ukuran='$ukuran' WHERE id='$dokId'");
+        mysqli_query($conn, "UPDATE dokumen_diana_2430511046 SET ukuran='$ukuran' WHERE id='$dokId'");
     }
 }
 
@@ -73,11 +73,11 @@ switch ($method) {
 
     // READ
     case 'GET':
-        $result = mysqli_query($conn, "SELECT * FROM surat_masuk ORDER BY id DESC");
+        $result = mysqli_query($conn, "SELECT * FROM surat_masuk_diana_2430511046 ORDER BY id DESC");
         $data   = [];
         while ($row = mysqli_fetch_assoc($result)) {
             $id = $row['id'];
-            $fileResult = mysqli_query($conn, "SELECT * FROM surat_masuk_files WHERE surat_id='$id'");
+            $fileResult = mysqli_query($conn, "SELECT * FROM surat_masuk_files_diana_2430511046 WHERE surat_id='$id'");
             $files = [];
             while ($f = mysqli_fetch_assoc($fileResult)) {
                 $files[] = ['id' => $f['id'], 'name' => $f['nama_file'], 'file_path' => $f['file_path']];
@@ -101,7 +101,7 @@ switch ($method) {
         $ket       = mysqli_real_escape_string($conn, $d['ket']       ?? '');
 
         mysqli_query($conn, "
-            INSERT INTO surat_masuk (nomor,tanggal,pengirim,perihal,status,disposisi,ket)
+            INSERT INTO surat_masuk_diana_2430511046 (nomor,tanggal,pengirim,perihal,status,disposisi,ket)
             VALUES ('$nomor','$tanggal','$pengirim','$perihal','$status','$disposisi','$ket')
         ");
         $suratId = mysqli_insert_id($conn);
@@ -126,7 +126,7 @@ switch ($method) {
         $ket       = mysqli_real_escape_string($conn, $d['ket']       ?? '');
 
         mysqli_query($conn, "
-            UPDATE surat_masuk SET
+            UPDATE surat_masuk_diana_2430511046 SET
                 nomor='$nomor', tanggal='$tanggal', pengirim='$pengirim',
                 perihal='$perihal', status='$status', disposisi='$disposisi', ket='$ket'
             WHERE id='$id'
@@ -143,19 +143,19 @@ switch ($method) {
         $id = (int)($_GET['id'] ?? 0);
 
         // Hapus arsip dokumen yang terhubung
-        $cek = mysqli_query($conn, "SELECT id FROM dokumen WHERE sumber='surat_masuk' AND sumber_id='$id'");
+        $cek = mysqli_query($conn, "SELECT id FROM dokumen_diana_2430511046 WHERE sumber='surat_masuk' AND sumber_id='$id'");
         while ($r = mysqli_fetch_assoc($cek)) {
             $did = $r['id'];
             // Hapus file fisik
-            $fRes = mysqli_query($conn, "SELECT file_path FROM dokumen_files WHERE dokumen_id='$did'");
+            $fRes = mysqli_query($conn, "SELECT file_path FROM dokumen_files_diana_2430511046 WHERE dokumen_id='$did'");
             while ($f = mysqli_fetch_assoc($fRes)) {
                 $fp = __DIR__ . '/../' . $f['file_path'];
                 if (file_exists($fp)) unlink($fp);
             }
-            mysqli_query($conn, "DELETE FROM dokumen WHERE id='$did'");
+            mysqli_query($conn, "DELETE FROM dokumen_diana_2430511046 WHERE id='$did'");
         }
 
-        mysqli_query($conn, "DELETE FROM surat_masuk WHERE id='$id'");
+        mysqli_query($conn, "DELETE FROM surat_masuk_diana_2430511046 WHERE id='$id'");
         echo json_encode(["success" => true]);
     break;
 }

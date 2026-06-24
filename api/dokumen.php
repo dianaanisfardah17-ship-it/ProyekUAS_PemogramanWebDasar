@@ -16,13 +16,13 @@ switch ($method) {
         $id = isset($_GET['id']) ? (int)$_GET['id'] : null;
 
         if ($id) {
-            $result = mysqli_query($conn, "SELECT * FROM dokumen WHERE id='$id'");
+            $result = mysqli_query($conn, "SELECT * FROM dokumen_diana_2430511046 WHERE id='$id'");
             $row = mysqli_fetch_assoc($result);
             if (!$row) {
                 echo json_encode(["success" => false, "message" => "Dokumen tidak ditemukan"]);
                 break;
             }
-            $fRes = mysqli_query($conn, "SELECT * FROM dokumen_files WHERE dokumen_id='$id'");
+            $fRes = mysqli_query($conn, "SELECT * FROM dokumen_files_diana_2430511046 WHERE dokumen_id='$id'");
             $files = [];
             while ($f = mysqli_fetch_assoc($fRes)) {
                 $files[] = [
@@ -34,11 +34,11 @@ switch ($method) {
             $row['files'] = $files;
             echo json_encode($row);
         } else {
-            $result = mysqli_query($conn, "SELECT * FROM dokumen ORDER BY id DESC");
+            $result = mysqli_query($conn, "SELECT * FROM dokumen_diana_2430511046 ORDER BY id DESC");
             $data = [];
             while ($row = mysqli_fetch_assoc($result)) {
                 $did = $row['id'];
-                $fRes = mysqli_query($conn, "SELECT * FROM dokumen_files WHERE dokumen_id='$did'");
+                $fRes = mysqli_query($conn, "SELECT * FROM dokumen_files_diana_2430511046 WHERE dokumen_id='$did'");
                 $files = [];
                 while ($f = mysqli_fetch_assoc($fRes)) {
                     $files[] = [
@@ -72,7 +72,7 @@ switch ($method) {
         }
 
         $ok = mysqli_query($conn, "
-            INSERT INTO dokumen (nama, kategori, tanggal, ukuran, deskripsi, tahun)
+            INSERT INTO dokumen_diana_2430511046 (nama, kategori, tanggal, ukuran, deskripsi, tahun)
             VALUES ('$nama','$kategori','$tanggal','$ukuran','$deskripsi','$tahun')
         ");
 
@@ -100,7 +100,7 @@ switch ($method) {
         }
 
         $ok = mysqli_query($conn, "
-            UPDATE dokumen SET
+            UPDATE dokumen_diana_2430511046 SET
                 nama='$nama', kategori='$kategori', tanggal='$tanggal',
                 ukuran='$ukuran', deskripsi='$deskripsi', tahun='$tahun'
             WHERE id='$id'
@@ -115,7 +115,7 @@ switch ($method) {
 
         // Hapus satu file dari dokumen (tanpa menghapus dokumennya)
         if ($fileId) {
-            $fRes = mysqli_query($conn, "SELECT file_path FROM dokumen_files WHERE id='$fileId'");
+            $fRes = mysqli_query($conn, "SELECT file_path FROM dokumen_files_diana_2430511046 WHERE id='$fileId'");
             $f = mysqli_fetch_assoc($fRes);
             if (!$f) {
                 echo json_encode(["success" => false, "message" => "File tidak ditemukan"]);
@@ -124,7 +124,7 @@ switch ($method) {
             $path = __DIR__ . '/../' . $f['file_path'];
             if (file_exists($path)) unlink($path);
 
-            $ok = mysqli_query($conn, "DELETE FROM dokumen_files WHERE id='$fileId'");
+            $ok = mysqli_query($conn, "DELETE FROM dokumen_files_diana_2430511046 WHERE id='$fileId'");
             echo json_encode(["success" => (bool)$ok]);
             break;
         }
@@ -136,14 +136,14 @@ switch ($method) {
         }
 
         // Hapus file fisik terlebih dahulu
-        $fRes = mysqli_query($conn, "SELECT file_path FROM dokumen_files WHERE dokumen_id='$id'");
+        $fRes = mysqli_query($conn, "SELECT file_path FROM dokumen_files_diana_2430511046 WHERE dokumen_id='$id'");
         while ($f = mysqli_fetch_assoc($fRes)) {
             $path = __DIR__ . '/../' . $f['file_path'];
             if (file_exists($path)) unlink($path);
         }
 
         // Hapus record (CASCADE akan hapus dokumen_files juga)
-        $ok = mysqli_query($conn, "DELETE FROM dokumen WHERE id='$id'");
+        $ok = mysqli_query($conn, "DELETE FROM dokumen_diana_2430511046 WHERE id='$id'");
         echo json_encode(["success" => (bool)$ok]);
         break;
 }

@@ -10,7 +10,7 @@ switch($method){
 
     case 'GET':
 
-        $result = mysqli_query($conn, "SELECT * FROM anggota ORDER BY id DESC");
+        $result = mysqli_query($conn, "SELECT * FROM anggota_diana_2430511046 ORDER BY id DESC");
 
         $data = [];
 
@@ -35,7 +35,7 @@ switch($method){
         $status = $input['status'];
 
         mysqli_query($conn,"
-            INSERT INTO anggota
+            INSERT INTO anggota_diana_2430511046
             (nim,nama,jabatan,bidang,angkatan,hp,email,status)
             VALUES
             ('$nim','$nama','$jabatan','$bidang','$angkatan','$hp','$email','$status')
@@ -51,7 +51,7 @@ switch($method){
         $id = $input['id'];
 
         mysqli_query($conn,"
-            UPDATE anggota
+            UPDATE anggota_diana_2430511046
             SET
                 nim='$input[nim]',
                 nama='$input[nama]',
@@ -72,7 +72,7 @@ switch($method){
         $id = $_GET['id'];
 
         mysqli_query($conn,"
-            DELETE FROM anggota
+            DELETE FROM anggota_diana_2430511046
             WHERE id='$id'
         ");
 
